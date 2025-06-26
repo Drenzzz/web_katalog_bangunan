@@ -26,14 +26,18 @@ jobs:
           tools: composer:v2
           coverage: xdebug
 
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
 
+      - name: Install PNPM
+        run: npm install -g pnpm
+
       - name: Install Node Dependencies
-        run: npm i
+        run: pnpm i
 
       - name: Add Flux Credentials Loaded From ENV
         run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
@@ -48,7 +52,7 @@ jobs:
         run: php artisan key:generate
 
       - name: Build Assets
-        run: npm run build
+        run: pnpm run build
 
       - name: Run Tests
         run: ./vendor/bin/pest

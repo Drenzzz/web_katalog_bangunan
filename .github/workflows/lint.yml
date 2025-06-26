@@ -31,7 +31,8 @@ jobs:
       - name: Install Dependencies
         run: |
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          npm install
+          npm install -g pnpm
+          pnpm install
 
       - name: Run Pint
         run: vendor/bin/pint
