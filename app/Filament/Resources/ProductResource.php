@@ -6,14 +6,18 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use Filament\Forms;
+use Filament\Forms\Set;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\Select;
+use Illuminate\Support\Str;
 
 class ProductResource extends Resource
 {
@@ -26,37 +30,44 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Group::make()->schema([ // Grup untuk kolom utama
+                Forms\Components\Group::make()->schema([
                     Forms\Components\Section::make('Informasi Produk')->schema([
-                        Forms\Components\TextInput::make('name')->required(),
-                        Forms\Components\Textarea::make('description')->rows(5),
-                    ]),
-                    Forms\Components\Section::make('Gambar')->schema([
-                        // Ini adalah field untuk upload gambar dari Spatie Media Library
-                        Forms\Components\SpatieMediaLibraryFileUpload::make('product_images')
-                            ->label('Gambar Produk')
-                            ->multiple() // Bisa upload banyak gambar
-                            ->reorderable()
-                            ->image()
-                            ->collection('products'), // Simpan ke collection 'products'
-                    ]),
-                ])->columnSpan(2),
+                        Forms\Components\TextInput::make('name')->required()->lazy()
+                            ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
+                        Forms\Components\TextInput::make('slug')->required(),
+                        Forms\Components\RichEditor::make('description')->columnSpanFull(),
+                    ])->columns(2),
 
-                Forms\Components\Group::make()->schema([ // Grup untuk sidebar
-                    Forms\Components\Section::make('Detail Harga & Stok')->schema([
-                        Forms\Components\TextInput::make('price')->required()->numeric()->prefix('Rp'),
-                        Forms\Components\TextInput::make('sku')->label('SKU (Kode Unik)')->unique(ignoreRecord: true),
-                        Forms\Components\TextInput::make('unit')->required()->default('pcs'),
-                    ]),
+                    Forms\Components\Section::make('Harga & Stok')->schema([
+                        Forms\Components\TextInput::make('price')->numeric()->prefix('Rp')->required(),
+                        Forms\Components\TextInput::make('stock')->numeric()->required(),
+                        Select::make('unit_id')
+                            ->relationship('unit', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->label('Satuan'),
+                    ])->columns(3),
+                ])->columnSpan(['lg' => 2]),
+
+                Forms\Components\Group::make()->schema([
                     Forms\Components\Section::make('Asosiasi')->schema([
-                        // Dropdown untuk memilih Kategori
-                        Forms\Components\Select::make('category_id')
+                        Select::make('category_id')
                             ->relationship('category', 'name')
-                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        Select::make('brand_id')
+                            ->relationship('brand', 'name')
                             ->searchable()
                             ->preload(),
                     ]),
-                ])->columnSpan(1),
+                    Forms\Components\Section::make('Gambar')->schema([
+                        Forms\Components\FileUpload::make('image')
+                            ->directory('product-images')
+                            ->image()
+                            ->required(),
+                    ]),
+                ])->columnSpan(['lg' => 1]),
             ])->columns(3);
     }
 
