@@ -26,6 +26,14 @@ class ProductResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront'; // Ikon baru
     protected static ?int $navigationSort = 2; // Urutan di sidebar
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
