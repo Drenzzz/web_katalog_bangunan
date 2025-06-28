@@ -14,8 +14,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Database\Eloquent\Model;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\Select;
 use Illuminate\Support\Str;
 
@@ -62,7 +62,7 @@ class ProductResource extends Resource
                             ->preload(),
                     ]),
                     Forms\Components\Section::make('Gambar')->schema([
-                        Forms\Components\FileUpload::make('image')
+                        FileUpload::make('image')
                             ->directory('product-images')
                             ->image()
                             ->required(),
@@ -76,9 +76,8 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 // Kolom untuk menampilkan gambar utama
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('main_image')
-                    ->label('Gambar')
-                    ->collection('products'),
+                ImageColumn::make('image')
+                    ->label('Gambar'),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 // Menampilkan nama kategori dari relasi
                 Tables\Columns\TextColumn::make('category.name')->sortable(),
