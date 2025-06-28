@@ -8,6 +8,8 @@ use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Set;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -79,6 +81,30 @@ class ProductResource extends Resource
             ])->columns(3);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Infolists\Components\Section::make('Informasi Produk')->schema([
+                    Infolists\Components\TextEntry::make('name'),
+                    Infolists\Components\TextEntry::make('slug'),
+                    Infolists\Components\TextEntry::make('description')->html(),
+                ])->columns(2),
+
+                Infolists\Components\Section::make('Harga, Stok & Asosiasi')->schema([
+                    Infolists\Components\TextEntry::make('price')->money('IDR'),
+                    Infolists\Components\TextEntry::make('stock'),
+                    Infolists\Components\TextEntry::make('category.name'),
+                    Infolists\Components\TextEntry::make('brand.name'),
+                    Infolists\Components\TextEntry::make('unit.name'),
+                ])->columns(3),
+
+                Infolists\Components\Section::make('Gambar')->schema([
+                    Infolists\Components\ImageEntry::make('image')->height(200),
+                ]),
+            ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -92,14 +118,24 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('price')->money('IDR')->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make(),
+
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                // Grup untuk aksi-aksi utama
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(), // <-- Tombol View Detail
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(), // Ini adalah Soft Delete
+                    Tables\Actions\ForceDeleteAction::make(), // <-- Tombol Hapus Permanen
+                    Tables\Actions\RestoreAction::make(), // <-- Tombol Kembalikan
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ]);
     }
